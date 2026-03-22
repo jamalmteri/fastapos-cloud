@@ -503,11 +503,12 @@ function renderHotel(){
   if(h.total===0)return `<div class="no-data"><div class="ico">🏨</div><p>Hakuna vyumba vilivyosajiliwa</p><p style="font-size:12px;margin-top:8px;color:#475569">Ongeza vyumba kwenye Reception ya mfumo wa mgahawa</p></div>`;
   return `
   <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-icon">🏨</div><div class="kpi-lbl">Vyumba Vyote</div><div class="kpi-val blue">${h.total}</div></div>
-    <div class="kpi"><div class="kpi-icon">🟢</div><div class="kpi-lbl">Inapatikana</div><div class="kpi-val green">${h.available||0}</div></div>
-    <div class="kpi"><div class="kpi-icon">🟡</div><div class="kpi-lbl">Imechukuliwa</div><div class="kpi-val yellow">${h.occupied||0}</div></div>
-    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Occupancy</div><div class="kpi-val red">${h.occupancyRate||0}%</div></div>
+    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">Kimelipwa Leo</div><div class="kpi-val green">${fmtK(h.revenue||0)}</div><div class="kpi-sub">malipo yaliyofanyika</div></div>
+    <div class="kpi"><div class="kpi-icon">⏳</div><div class="kpi-lbl">Deni la Wageni</div><div class="kpi-val yellow">${fmtK(h.pendingValue||0)}</div><div class="kpi-sub">${h.activeBookings||0} mgeni waliomo</div></div>
+    <div class="kpi"><div class="kpi-icon">🏨</div><div class="kpi-lbl">Imechukuliwa</div><div class="kpi-val blue">${h.occupied||0}/${h.total}</div><div class="kpi-sub">vyumba</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Occupancy</div><div class="kpi-val red">${h.occupancyRate||0}%</div><div class="kpi-sub">ya vyumba vyote</div></div>
   </div>
+  ${(h.pendingValue||0)>0?`<div class="alert alert-warn" style="margin-bottom:14px">⏳ Baki ya kulipwa checkout: <strong>${fmt(h.pendingValue)}</strong> — wageni ${h.activeBookings} watakalipa watakapoondoka</div>`:''}
   <div class="grid-2">
     <div class="section">
       <div class="sec-hdr"><span>📊</span><span class="sec-title">Hali ya Vyumba</span></div>
