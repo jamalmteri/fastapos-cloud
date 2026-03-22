@@ -153,6 +153,19 @@ main{max-width:1200px;margin:0 auto;padding:22px 20px}
     <span class="logo">⚡ FastaPos</span>
     <span class="store-badge" id="store-name">—</span>
     <div class="hdr-r">
+      <!-- Date Picker -->
+      <div style="display:flex;align-items:center;gap:4px;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:4px 8px">
+        <button onclick="prevDay()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;padding:0 4px">‹</button>
+        <span style="font-size:13px">📅</span>
+        <input type="date" id="date-picker"
+          style="background:transparent;border:none;color:#e2e8f0;font-size:12px;font-weight:700;outline:none;cursor:pointer"
+          onchange="onDateChange(this.value)"/>
+        <button onclick="nextDay()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;padding:0 4px">›</button>
+        <button onclick="goToday()"
+          style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#1e3a5f;color:#60a5fa;border:none;cursor:pointer">
+          Leo
+        </button>
+      </div>
       <span class="sync-badge sync-wait" id="sync-badge">🔄 Inapakia</span>
       <button class="btn-sm" onclick="refresh()">↻ Sasisha</button>
       <button class="btn-sm" onclick="logout()">Toka</button>
@@ -179,6 +192,7 @@ let D = null; // current data
 let H = []; // history
 let tab = 'overview';
 let interval = null;
+let selectedDate = new Date().toISOString().slice(0,10); // date picker
 
 if(token) initDash();
 
@@ -211,9 +225,50 @@ function initDash(){
   document.getElementById('login-page').classList.add('hidden');
   document.getElementById('dash').classList.remove('hidden');
   if(tenant)document.getElementById('store-name').textContent=tenant.name||'Dashboard';
+  // Set date picker to today
+  const dp=document.getElementById('date-picker');
+  if(dp){ dp.value=selectedDate; dp.max=selectedDate; }
   refresh();
   if(interval)clearInterval(interval);
-  interval=setInterval(refresh,120000);
+  // Auto-refresh tu kama leo
+  interval=setInterval(()=>{ if(selectedDate===new Date().toISOString().slice(0,10)) refresh(); },120000);
+}
+
+function onDateChange(val){
+  selectedDate=val;
+  const today=new Date().toISOString().slice(0,10);
+  const isToday=val===today;
+  if(!isToday && interval){ clearInterval(interval); interval=null; }
+  else if(isToday && !interval){ interval=setInterval(()=>refresh(),120000); }
+  loadData().then(()=>render());
+}
+
+function goToday(){
+  const today=new Date().toISOString().slice(0,10);
+  selectedDate=today;
+  document.getElementById('date-picker').value=today;
+  loadData().then(()=>render());
+  if(!interval) interval=setInterval(()=>refresh(),120000);
+}
+
+function prevDay(){
+  const d=new Date(selectedDate+'T12:00:00'); d.setDate(d.getDate()-1);
+  const val=d.toISOString().slice(0,10);
+  selectedDate=val;
+  document.getElementById('date-picker').value=val;
+  if(interval){clearInterval(interval);interval=null;}
+  loadData().then(()=>render());
+}
+
+function nextDay(){
+  const today=new Date().toISOString().slice(0,10);
+  const d=new Date(selectedDate+'T12:00:00'); d.setDate(d.getDate()+1);
+  const val=d.toISOString().slice(0,10);
+  if(val>today) return;
+  selectedDate=val;
+  document.getElementById('date-picker').value=val;
+  if(val===today && !interval) interval=setInterval(()=>refresh(),120000);
+  loadData().then(()=>render());
 }
 
 async function refresh(){
@@ -224,15 +279,23 @@ async function refresh(){
 // ── Data loading ──────────────────────────────────────────────
 async function loadData(){
   try{
-    const r=await fetch(`${API}/api/dashboard`,{headers:{Authorization:`Bearer ${token}`}});
+    const today=new Date().toISOString().slice(0,10);
+    const isToday=selectedDate===today;
+    const url=`${API}/api/dashboard?date=${selectedDate}`;
+    const r=await fetch(url,{headers:{Authorization:`Bearer ${token}`}});
     if(r.status===401){logout();return}
     const j=await r.json();
     if(j.data){
-      D=j.data; D._syncedAt=j.syncedAt;
-      const t=new Date(j.syncedAt).toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit'});
-      setSyncBadge('ok',`✅ ${t}`);
+      D=j.data; D._syncedAt=j.syncedAt; D._date=selectedDate; D._isToday=isToday;
+      if(isToday){
+        const t=new Date(j.syncedAt).toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit'});
+        setSyncBadge('ok',`✅ Leo ${t}`);
+      } else {
+        setSyncBadge('wait',`📅 ${selectedDate}`);
+      }
     } else {
-      setSyncBadge('wait','⚫ Haijasync');
+      D=null;
+      setSyncBadge('err',`⚫ Hakuna data`);
     }
   }catch{setSyncBadge('err','❌ Hitilafu')}
 }
@@ -261,15 +324,34 @@ function showTab(t){
 }
 
 function render(){
+  const today=new Date().toISOString().slice(0,10);
+  const isToday=selectedDate===today;
+  const days=['Jumapili','Jumatatu','Jumanne','Jumatano','Alhamisi','Ijumaa','Jumamosi'];
+  const dateObj=new Date(selectedDate+'T12:00:00');
+  const dateLabel=isToday?'Leo':dateObj.toLocaleDateString('sw-TZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Date navigation banner (inaonyeshwa kila wakati)
+  const banner=`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;margin-bottom:4px">
+    <button onclick="prevDay()" style="background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:16px">‹</button>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:16px;font-weight:800;color:${isToday?'#f59e0b':'#e2e8f0'}">${dateLabel}</div>
+      ${!isToday?`<div style="font-size:12px;color:#64748b;margin-top:2px">Data ya zamani — inaonyesha rekodi</div>`:''}
+    </div>
+    <button onclick="nextDay()" style="background:#1e293b;border:1px solid #334155;color:${selectedDate===today?'#334155':'#94a3b8'};padding:6px 14px;border-radius:8px;cursor:${selectedDate===today?'not-allowed':'pointer'};font-size:16px;opacity:${selectedDate===today?.4:1}">›</button>
+  </div>`;
+
   if(!D){
-    document.getElementById('main-content').innerHTML=`
+    document.getElementById('main-content').innerHTML=banner+`
       <div class="no-data"><div class="ico">📡</div>
-      <p style="font-size:14px;color:#64748b">Hakuna data bado</p>
-      <p style="font-size:12px;color:#475569;margin-top:8px">Washa Cloud Sync: Settings → Cloud → Hifadhi</p></div>`;
+      <p style="font-size:14px;color:#64748b">${isToday?'Hakuna data bado':'Hakuna data kwa tarehe hii'}</p>
+      <p style="font-size:12px;color:#475569;margin-top:8px">${isToday?'Washa Cloud Sync: Settings → Cloud → Hifadhi':'Data haikupatikana au haikuwepo siku hiyo'}</p>
+      ${!isToday?`<button onclick="prevDay()" style="margin-top:16px;padding:8px 20px;background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:10px;cursor:pointer">← Siku Iliyopita</button>`:''}
+      </div>`;
     return;
   }
+
   const fn={overview:renderOverview,orders:renderOrders,hotel:renderHotel,staff:renderStaff,charts:renderCharts,history:renderHistory};
-  document.getElementById('main-content').innerHTML=(fn[tab]||renderOverview)();
+  document.getElementById('main-content').innerHTML=banner+(fn[tab]||renderOverview)();
 }
 
 // ── Helpers ───────────────────────────────────────────────────
