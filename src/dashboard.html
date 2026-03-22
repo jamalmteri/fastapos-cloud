@@ -1,190 +1,173 @@
+<!-- ~/Desktop/fastapos-cloud/src/dashboard.html -->
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FastaPos Cloud — Owner Dashboard</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: #0f172a; color: #fff; min-height: 100vh; }
-    .hidden { display: none !important; }
-
-    /* Login UI */
-    #login-page { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
-    .login-box { background:#1e293b; border-radius:20px; padding:40px; width:100%; max-width:400px; border:1px solid #334155; }
-    .btn-primary { width:100%; height:46px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; }
-
-    /* Dashboard UI */
-    header { background:#1e293b; border-bottom:1px solid #334155; padding:0 24px; height:60px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:100; }
-    .logo { font-size:20px; font-weight:900; color:#f59e0b; }
-    .sync-badge { font-size:11px; padding:4px 12px; border-radius:20px; background:#064e3b; color:#34d399; font-weight:600; margin-left:auto; }
-
-    main { max-width:1200px; margin:0 auto; padding:20px; }
-    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    
-    .card { background:#1e293b; border-radius:16px; padding:20px; border:1px solid #334155; height: 100%; }
-    .card-title { font-size:14px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:15px; display:flex; justify-content:space-between; }
-    
-    /* KPI */
-    .kpi-val { font-size:28px; font-weight:900; color:#fff; font-family:monospace; }
-    .green { color:#22c55e; } .yellow { color:#f59e0b; } .red { color:#ef4444; }
-
-    /* List Items */
-    .list-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #33415566; }
-    .list-name { font-size:14px; font-weight:500; }
-    .list-meta { font-size:12px; color:#64748b; }
-    .list-val { font-weight:700; font-family:monospace; }
-
-    /* Badge */
-    .badge-red { background:#450a0a; color:#f87171; padding:2px 8px; border-radius:6px; font-size:11px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastaPos Cloud Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<div id="login-page">
-  <div class="login-box">
-    <h1 style="text-align:center; color:#f59e0b; margin-bottom:20px;">⚡ FastaPos</h1>
-    <input type="email" id="email" placeholder="Email" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:none; background:#0f172a; color:#fff;">
-    <input type="password" id="password" placeholder="Password" style="width:100%; margin-bottom:20px; padding:12px; border-radius:8px; border:none; background:#0f172a; color:#fff;">
-    <button class="btn-primary" onclick="handleLogin()">Ingia Dashboard</button>
-  </div>
-</div>
-
-<div id="dashboard-page" class="hidden">
-  <header>
-    <span class="logo">⚡ FastaPos Cloud</span>
-    <span id="tenant-name" style="font-size:14px; color:#94a3b8;"></span>
-    <div id="sync-status" class="sync-badge">🔄 Inapakia...</div>
-    <button onclick="logout()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px;">Toka</button>
-  </header>
-
-  <main>
-    <div class="grid-container">
-      
-      <!-- MAUZO LEO -->
-      <div class="card">
-        <div class="card-title">💰 Mapato ya Leo</div>
-        <div id="revenue-val" class="kpi-val green">TSh 0</div>
-        <p id="order-count" style="color:#64748b; font-size:13px; margin-top:5px;">0 orders</p>
-      </div>
-
-      <!-- HALI YA STOO -->
-      <div class="card">
-        <div class="card-title">📦 Alerts za Stoo <span class="badge-red" id="stock-count">0</span></div>
-        <div id="stock-list">
-          <p style="color:#64748b; font-size:13px;">Kila kitu kipo sawa...</p>
-        </div>
-      </div>
-
-      <!-- WAHUDUMU LEADERBOARD -->
-      <div class="card">
-        <div class="card-title">🏆 Wahudumu Bora (Leo)</div>
-        <div id="waiter-list">
-           <!-- Waiter rows go here -->
-        </div>
-      </div>
-
-      <!-- HOTEL STATUS -->
-      <div class="card" id="hotel-card">
-        <div class="card-title">🏨 Hali ya Hotel</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div style="background:#0f172a; padding:10px; border-radius:8px;">
-            <p style="font-size:10px; color:#64748b;">VYUMBA</p>
-            <p id="hotel-occ" class="yellow" style="font-weight:900;">0/0</p>
-          </div>
-          <div style="background:#0f172a; padding:10px; border-radius:8px;">
-            <p style="font-size:10px; color:#64748b;">REVENUE</p>
-            <p id="hotel-rev" class="green" style="font-weight:900;">TSh 0</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </main>
-</div>
-
-<script>
-  const API = window.location.origin;
-  let token = localStorage.getItem('token');
-
-  if (token) showDashboard();
-
-  async function handleLogin() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const res = await fetch(`${API}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if(data.ok) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('tenant', JSON.stringify(data.tenant));
-      showDashboard();
-    } else { alert(data.message); }
-  }
-
-  function logout() { localStorage.clear(); window.location.reload(); }
-
-  function showDashboard() {
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('dashboard-page').classList.remove('hidden');
-    const tenant = JSON.parse(localStorage.getItem('tenant'));
-    document.getElementById('tenant-name').innerText = `| ${tenant.name}`;
-    fetchData();
-    setInterval(fetchData, 60000);
-  }
-
-  async function fetchData() {
-    try {
-      const res = await fetch(`${API}/api/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if(!json.data) return;
-
-      const d = json.data;
-      
-      // Update Revenue
-      document.getElementById('revenue-val').innerText = `TSh ${(d.revenue || 0).toLocaleString()}`;
-      document.getElementById('order-count').innerText = `${d.orderCount || 0} orders leo`;
-
-      // Update Stock
-      const stockList = document.getElementById('stock-list');
-      if (d.lowStock && d.lowStock.length > 0) {
-        document.getElementById('stock-count').innerText = d.lowStock.length;
-        stockList.innerHTML = d.lowStock.map(i => `
-          <div class="list-row">
-            <span class="list-name">${i.name}</span>
-            <span class="red" style="font-weight:800;">${i.quantity} ${i.unit}</span>
-          </div>
-        `).join('');
-      }
-
-      // Update Waiters
-      const waiterList = document.getElementById('waiter-list');
-      if (d.waiters && d.waiters.length > 0) {
-        waiterList.innerHTML = d.waiters.sort((a,b) => b.total - a.total).map((w, i) => `
-          <div class="list-row">
-            <div>
-              <div class="list-name">${i+1}. ${w.name}</div>
-              <div class="list-meta">${w.count} orders</div>
+    <!-- Auth Overlay -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 flex-col px-4">
+        <div class="w-full max-w-md p-8 rounded-2xl glass">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-500 mb-2 italic">⚡ FastaPos</h1>
+                <p class="text-slate-400">Cloud Owner Dashboard</p>
             </div>
-            <div class="list-val green">TSh ${w.total.toLocaleString()}</div>
-          </div>
-        `).join('');
-      }
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-400 mb-2">Email ya Mgahawa</label>
+                    <input type="email" id="email" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="mfano@fastapos.co.tz">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-2">Nenosiri (Password)</label>
+                    <input type="password" id="password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="handleLogin()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold transition-all mt-4">
+                    Ingia Kwenye Dashboard
+                </button>
+            </div>
+        </div>
+        <p class="mt-8 text-slate-500 text-sm">FastaPos v6.0 &copy; 2026</p>
+    </div>
 
-      // Update Hotel
-      if(d.hotel) {
-        document.getElementById('hotel-occ').innerText = `${d.hotel.occupied}/${d.hotel.total}`;
-        document.getElementById('hotel-rev').innerText = `TSh ${d.hotel.revenue.toLocaleString()}`;
-      }
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+        <nav class="border-b border-white/10 px-6 py-4 flex justify-between items-center glass sticky top-0 z-40">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl font-bold text-blue-500 italic">⚡ FastaPos</span>
+                <span id="tenantName" class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-medium border border-blue-500/30">
+                    Inapakia...
+                </span>
+            </div>
+            <button onclick="handleLogout()" class="text-slate-400 hover:text-white flex items-center gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i> Toka
+            </button>
+        </nav>
 
-      document.getElementById('sync-status').innerText = `✅ Sync: ${new Date(json.syncedAt).toLocaleTimeString()}`;
-    } catch (e) { console.error(e); }
-  }
-</script>
+        <main class="p-6 max-w-7xl mx-auto">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold">Overview ya Leo</h2>
+                    <p class="text-slate-400" id="lastSyncTime">Inapakia data...</p>
+                </div>
+                <button onclick="fetchDashboardData()" class="bg-slate-800 p-2 rounded hover:bg-slate-700">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass p-6 rounded-2xl border-l-4 border-blue-500">
+                    <p class="text-slate-400 text-sm mb-1">Mapato ya Leo</p>
+                    <h3 class="text-3xl font-bold" id="statRevenue">TSh 0</h3>
+                </div>
+                <div class="glass p-6 rounded-2xl border-l-4 border-emerald-500">
+                    <p class="text-slate-400 text-sm mb-1">Orders Zilizoisha</p>
+                    <h3 class="text-3xl font-bold" id="statOrders">0</h3>
+                </div>
+                <div class="glass p-6 rounded-2xl border-l-4 border-purple-500">
+                    <p class="text-slate-400 text-sm mb-1">Vyumba Vyenye Wageni</p>
+                    <h3 class="text-3xl font-bold" id="statRooms">0</h3>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-slate-500">
+                <i class="fa-solid fa-satellite-dish text-6xl mb-4"></i>
+                <h3 class="text-xl">Hakuna data bado</h3>
+                <p>Hakikisha Cloud Sync imewashwa kwenye Settings -> Cloud</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let TOKEN = localStorage.getItem('fastapos_cloud_token');
+
+        // Check login status
+        if (TOKEN) {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            fetchDashboardData();
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (!email || !password) return alert('Jaza email na password');
+
+            btn.disabled = true;
+            btn.innerText = 'Inatafuta...';
+
+            try {
+                const res = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    localStorage.setItem('fastapos_cloud_token', data.token);
+                    localStorage.setItem('fastapos_tenant_info', JSON.stringify(data.tenant));
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Imeshindwa kuunganisha kwenye server');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Ingia Kwenye Dashboard';
+            }
+        }
+
+        async function fetchDashboardData() {
+            const tenantInfo = JSON.parse(localStorage.getItem('fastapos_tenant_info'));
+            if (tenantInfo) {
+                document.getElementById('tenantName').innerText = tenantInfo.name;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                const result = await res.json();
+
+                if (result.ok && result.data) {
+                    const d = result.data;
+                    document.getElementById('statRevenue').innerText = `TSh ${Number(d.revenue || 0).toLocaleString()}`;
+                    document.getElementById('statOrders').innerText = d.orderCount || 0;
+                    document.getElementById('statRooms').innerText = d.roomCount || 0;
+                    document.getElementById('lastSyncTime').innerText = `Sync ya mwisho: ${new Date(result.syncedAt).toLocaleString('sw-TZ')}`;
+                    document.getElementById('emptyState').classList.add('hidden');
+                    document.getElementById('statsGrid').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    document.getElementById('statsGrid').classList.add('hidden');
+                    document.getElementById('lastSyncTime').innerText = 'Inasubiri sync ya kwanza...';
+                }
+            } catch (err) {
+                console.error('Fetch error');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('fastapos_cloud_token');
+            localStorage.removeItem('fastapos_tenant_info');
+            window.location.reload();
+        }
+    </script>
 </body>
 </html>
