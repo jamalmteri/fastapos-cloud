@@ -1,338 +1,584 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FastaPos — Owner Dashboard</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: #0f172a; color: #fff; min-height: 100vh; }
-    .hidden { display: none !important; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FastaPos — Owner Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#0f172a;color:#e2e8f0;min-height:100vh}
+.hidden{display:none!important}
 
-    /* Login */
-    #login-page { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
-    .login-box { background:#1e293b; border-radius:20px; padding:40px; width:100%; max-width:400px; border:1px solid #334155; }
-    .login-logo { text-align:center; margin-bottom:28px; }
-    .login-logo h1 { font-size:28px; font-weight:900; color:#f59e0b; letter-spacing:-0.03em; }
-    .login-logo p { color:#94a3b8; font-size:13px; margin-top:4px; }
-    .field { margin-bottom:16px; }
-    .field label { display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
-    .field input { width:100%; height:44px; padding:0 14px; background:#0f172a; border:1.5px solid #334155; border-radius:10px; color:#fff; font-size:14px; outline:none; }
-    .field input:focus { border-color:#f59e0b; }
-    .btn-primary { width:100%; height:46px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; }
-    .error-msg { color:#ef4444; font-size:13px; text-align:center; margin-top:10px; min-height:20px; }
+/* ── Login ── */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)}
+.login-box{background:#1e293b;border-radius:24px;padding:44px;width:100%;max-width:420px;border:1px solid #334155;box-shadow:0 25px 50px rgba(0,0,0,.5)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-size:32px;font-weight:900;background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.03em}
+.login-logo p{color:#64748b;font-size:13px;margin-top:6px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.field input{width:100%;height:46px;padding:0 16px;background:#0f172a;border:1.5px solid #334155;border-radius:12px;color:#e2e8f0;font-size:14px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:#f59e0b}
+.btn-login{width:100%;height:48px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;letter-spacing:.01em;transition:opacity .15s}
+.btn-login:hover{opacity:.9}
+.err{color:#f87171;font-size:13px;text-align:center;margin-top:10px;min-height:18px}
 
-    /* Dashboard */
-    #dashboard-page { min-height:100vh; }
-    header { background:#1e293b; border-bottom:1px solid #334155; padding:0 24px; height:56px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:10; }
-    .logo { font-size:18px; font-weight:900; color:#f59e0b; }
-    .tenant-name { font-size:13px; color:#94a3b8; }
-    .header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
-    .sync-badge { font-size:11px; padding:3px 10px; border-radius:20px; background:#164e63; color:#67e8f9; font-weight:600; }
-    .logout-btn { padding:6px 14px; background:transparent; border:1px solid #334155; border-radius:8px; color:#94a3b8; font-size:12px; cursor:pointer; }
+/* ── Header ── */
+header{background:#1e293b;border-bottom:1px solid #1e3a5f;height:58px;display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.logo{font-size:19px;font-weight:900;background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.store-badge{padding:4px 12px;background:#1e3a5f;border:1px solid #1d4ed8;border-radius:20px;font-size:12px;font-weight:700;color:#60a5fa}
+.sync-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.sync-ok{background:#064e3b;color:#34d399;border:1px solid #065f46}
+.sync-wait{background:#1e3a5f;color:#67e8f9;border:1px solid #164e63}
+.sync-err{background:#450a0a;color:#f87171;border:1px solid #7f1d1d}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn-sm{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #334155;background:transparent;color:#94a3b8;transition:all .15s}
+.btn-sm:hover{background:#1e293b;color:#e2e8f0}
 
-    main { max-width:1100px; margin:0 auto; padding:24px; }
-    h2 { font-size:22px; font-weight:800; color:#fff; margin-bottom:4px; }
-    .subtitle { font-size:13px; color:#64748b; margin-bottom:24px; }
+/* ── Nav tabs ── */
+.nav-tabs{background:#1e293b;border-bottom:1px solid #1e3a5f;display:flex;gap:0;overflow-x:auto;padding:0 20px}
+.nav-tab{padding:12px 18px;font-size:13px;font-weight:600;color:#64748b;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-tab.active{color:#f59e0b;border-bottom-color:#f59e0b}
+.nav-tab:hover:not(.active){color:#e2e8f0}
 
-    /* KPI Grid */
-    .kpi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:24px; }
-    @media(min-width:600px){ .kpi-grid { grid-template-columns:repeat(4,1fr); } }
-    .kpi-card { background:#1e293b; border-radius:16px; padding:18px; border:1px solid #334155; }
-    .kpi-label { font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; }
-    .kpi-value { font-size:24px; font-weight:900; font-family:monospace; letter-spacing:-.03em; }
-    .kpi-sub { font-size:11px; color:#64748b; margin-top:4px; }
-    .green { color:#22c55e; } .yellow { color:#f59e0b; } .blue { color:#3b82f6; } .purple { color:#8b5cf6; } .red { color:#ef4444; }
+/* ── Main ── */
+main{max-width:1200px;margin:0 auto;padding:22px 20px}
 
-    /* Hotel section */
-    .hotel-section { background:#1e293b; border-radius:16px; padding:18px 20px; border:1px solid #334155; margin-bottom:24px; }
-    .section-title { font-size:14px; font-weight:800; color:#fff; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-    .hotel-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-    @media(min-width:500px){ .hotel-grid { grid-template-columns:repeat(5,1fr); } }
-    .hotel-stat { background:#0f172a; border-radius:10px; padding:12px; text-align:center; }
-    .hotel-stat-val { font-size:20px; font-weight:900; font-family:monospace; }
-    .hotel-stat-label { font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase; margin-top:3px; }
+/* ── KPI Grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+@media(min-width:700px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:linear-gradient(135deg,#1e293b,#1a2744);border-radius:16px;padding:18px 16px;border:1px solid #1e3a5f;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.06}
+.kpi-icon{font-size:22px;margin-bottom:8px}
+.kpi-lbl{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kpi-val{font-size:22px;font-weight:900;font-family:'SF Mono',monospace;letter-spacing:-.03em;line-height:1}
+.kpi-sub{font-size:11px;color:#64748b;margin-top:5px}
+.kpi-trend{font-size:11px;font-weight:700;margin-top:4px}
+.up{color:#34d399}.down{color:#f87171}.neu{color:#94a3b8}
+.green{color:#34d399}.yellow{color:#fbbf24}.blue{color:#60a5fa}.purple{color:#a78bfa}.red{color:#f87171}.cyan{color:#67e8f9}
 
-    /* Top items */
-    .top-items { background:#1e293b; border-radius:16px; padding:18px 20px; border:1px solid #334155; margin-bottom:24px; }
-    .item-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #1e293b55; }
-    .item-rank { width:28px; height:28px; border-radius:8px; background:#0f172a; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#f59e0b; flex-shrink:0; }
-    .item-name { flex:1; font-size:13px; font-weight:600; color:#e2e8f0; }
-    .item-qty { font-size:12px; color:#64748b; }
-    .item-rev { font-size:13px; font-weight:700; color:#22c55e; font-family:monospace; }
+/* ── Section ── */
+.section{background:#1e293b;border-radius:16px;border:1px solid #1e3a5f;margin-bottom:18px;overflow:hidden}
+.sec-hdr{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #1e3a5f}
+.sec-title{font-size:14px;font-weight:800;color:#e2e8f0}
+.sec-sub{font-size:12px;color:#64748b;margin-left:auto}
+.sec-body{padding:16px 20px}
 
-    /* Payment methods */
-    .methods { background:#1e293b; border-radius:16px; padding:18px 20px; border:1px solid #334155; margin-bottom:24px; }
-    .method-row { display:flex; align-items:center; gap:12px; padding:8px 0; }
-    .method-name { font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; width:80px; flex-shrink:0; }
-    .method-bar-wrap { flex:1; height:8px; background:#0f172a; border-radius:4px; overflow:hidden; }
-    .method-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,#22c55e,#16a34a); transition:width .6s ease; }
-    .method-val { font-size:12px; font-weight:700; color:#fff; font-family:monospace; width:90px; text-align:right; flex-shrink:0; }
+/* ── 2-col grid ── */
+.grid-2{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:800px){.grid-2{grid-template-columns:1fr 1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:600px){.grid-3{grid-template-columns:repeat(3,1fr)}}
 
-    /* History */
-    .history { background:#1e293b; border-radius:16px; padding:18px 20px; border:1px solid #334155; }
-    .history-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #0f172a; }
-    .history-date { font-size:12px; color:#94a3b8; width:90px; flex-shrink:0; }
-    .history-revenue { font-size:14px; font-weight:800; color:#22c55e; font-family:monospace; flex:1; }
-    .history-orders { font-size:12px; color:#64748b; }
+/* ── Hotel rooms ── */
+.room-stat{background:#0f172a;border-radius:12px;padding:14px;text-align:center;border:1px solid #1e3a5f}
+.room-val{font-size:26px;font-weight:900;font-family:monospace}
+.room-lbl{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;margin-top:4px}
 
-    /* No data */
-    .no-data { text-align:center; padding:48px 24px; color:#64748b; }
-    .no-data .icon { font-size:48px; margin-bottom:12px; }
-    .no-data p { font-size:14px; }
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:left;border-bottom:1px solid #1e3a5f}
+.tbl td{font-size:13px;padding:10px 10px;border-bottom:1px solid #0f172a;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-open{background:#1e3a5f;color:#60a5fa}
+.badge-prog{background:#1c3a2a;color:#34d399}
+.badge-billed{background:#3b2800;color:#fbbf24}
+.badge-ready{background:#1c2f3a;color:#67e8f9}
+.rank{width:28px;height:28px;border-radius:8px;background:#0f172a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#f59e0b;flex-shrink:0}
 
-    /* Loading */
-    .loading { text-align:center; padding:60px; color:#64748b; font-size:14px; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .spinner { width:32px; height:32px; border:3px solid #334155; border-top-color:#f59e0b; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
-  </style>
+/* ── Bar chart ── */
+.chart{display:flex;align-items:flex-end;gap:4px;height:100px;padding:8px 0}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,#1d4ed8,#3b82f6);min-height:2px;transition:height .4s ease}
+.bar-lbl{font-size:9px;color:#475569;font-weight:600}
+.bar-val{font-size:8px;color:#64748b}
+
+/* ── Daily chart ── */
+.daily-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0}
+.day-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.day-bar{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(to top,#7c3aed,#a78bfa);min-height:3px;transition:height .5s ease}
+.day-lbl{font-size:9px;color:#475569;font-weight:600;text-align:center}
+
+/* ── Method bar ── */
+.method-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #0f172a}
+.method-row:last-child{border-bottom:none}
+.method-name{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;width:75px;flex-shrink:0}
+.method-bar-wrap{flex:1;height:8px;background:#0f172a;border-radius:4px;overflow:hidden}
+.method-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#059669,#34d399)}
+.method-amt{font-size:12px;font-weight:700;font-family:monospace;color:#e2e8f0;width:100px;text-align:right;flex-shrink:0}
+
+/* ── Status dot ── */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.dot-green{background:#34d399}
+.dot-yellow{background:#fbbf24}
+.dot-blue{background:#60a5fa}
+.dot-purple{background:#a78bfa}
+.dot-red{background:#f87171}
+
+/* ── Alert ── */
+.alert{padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.alert-warn{background:#3b2800;border:1px solid #92400e;color:#fbbf24}
+.alert-info{background:#1e3a5f;border:1px solid #1d4ed8;color:#93c5fd}
+
+/* ── No data ── */
+.no-data{text-align:center;padding:40px;color:#475569}
+.no-data .ico{font-size:44px;margin-bottom:10px}
+
+/* ── Spinner ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:30px;height:30px;border:3px solid #1e3a5f;border-top-color:#f59e0b;border-radius:50%;animation:spin .7s linear infinite;margin:40px auto}
+</style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="login-page">
   <div class="login-box">
     <div class="login-logo">
       <h1>⚡ FastaPos</h1>
-      <p>Owner Dashboard — Ona biashara yako popote</p>
+      <p>Owner Dashboard — Ona biashara yako popote duniani</p>
     </div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="owner@mgahawa.co.tz"/>
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()"/>
-    </div>
-    <button class="btn-primary" onclick="doLogin()">Ingia →</button>
-    <div class="error-msg" id="login-error"></div>
+    <div class="field"><label>Email</label><input type="email" id="em" placeholder="owner@mgahawa.co.tz"/></div>
+    <div class="field"><label>Password</label><input type="password" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/></div>
+    <button class="btn-login" onclick="login()">Ingia →</button>
+    <div class="err" id="err"></div>
   </div>
 </div>
 
-<!-- DASHBOARD PAGE -->
-<div id="dashboard-page" class="hidden">
+<!-- DASHBOARD -->
+<div id="dash" class="hidden">
   <header>
     <span class="logo">⚡ FastaPos</span>
-    <span class="tenant-name" id="tenant-name-header">—</span>
-    <div class="header-right">
-      <span class="sync-badge" id="sync-badge">🔄 Inapakia...</span>
-      <button class="logout-btn" onclick="doLogout()">Toka</button>
+    <span class="store-badge" id="store-name">—</span>
+    <div class="hdr-r">
+      <span class="sync-badge sync-wait" id="sync-badge">🔄 Inapakia</span>
+      <button class="btn-sm" onclick="refresh()">↻ Sasisha</button>
+      <button class="btn-sm" onclick="logout()">Toka</button>
     </div>
   </header>
 
-  <main>
-    <h2 id="dash-title">Overview ya Leo</h2>
-    <div class="subtitle" id="dash-subtitle">Inapakia data...</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('overview')">📊 Overview</button>
+    <button class="nav-tab" onclick="showTab('orders')">🧾 Orders</button>
+    <button class="nav-tab" onclick="showTab('hotel')">🏨 Hotel</button>
+    <button class="nav-tab" onclick="showTab('staff')">👥 Wafanyakazi</button>
+    <button class="nav-tab" onclick="showTab('charts')">📈 Grafu</button>
+    <button class="nav-tab" onclick="showTab('history')">📅 Historia</button>
+  </div>
 
-    <div id="dash-content">
-      <div class="loading"><div class="spinner"></div>Inapakia data...</div>
-    </div>
-  </main>
+  <main id="main-content"><div class="spinner"></div></main>
 </div>
 
 <script>
-  const API = window.location.origin;
-  let token = localStorage.getItem('fp_token');
-  let tenantInfo = JSON.parse(localStorage.getItem('fp_tenant') || 'null');
-  let refreshInterval = null;
+const API = window.location.origin;
+let token = localStorage.getItem('fp_t');
+let tenant = JSON.parse(localStorage.getItem('fp_ten')||'null');
+let D = null; // current data
+let H = []; // history
+let tab = 'overview';
+let interval = null;
 
-  // ── Auto login ───────────────────────────────────────────────
-  if (token) showDashboard();
+if(token) initDash();
 
-  // ── Login ────────────────────────────────────────────────────
-  async function doLogin() {
-    const email    = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errEl    = document.getElementById('login-error');
-    errEl.textContent = '';
+// ── Auth ──────────────────────────────────────────────────────
+async function login(){
+  const em=document.getElementById('em').value.trim();
+  const pw=document.getElementById('pw').value;
+  const err=document.getElementById('err');
+  err.textContent='';
+  if(!em||!pw){err.textContent='Jaza email na password';return}
+  try{
+    const r=await fetch(`${API}/api/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})});
+    const d=await r.json();
+    if(!d.ok){err.textContent=d.message;return}
+    token=d.token; tenant=d.tenant;
+    localStorage.setItem('fp_t',token);
+    localStorage.setItem('fp_ten',JSON.stringify(tenant));
+    initDash();
+  }catch{err.textContent='Imeshindwa kuunganika'}
+}
 
-    if (!email || !password) { errEl.textContent = 'Jaza email na password'; return; }
+function logout(){
+  localStorage.removeItem('fp_t');localStorage.removeItem('fp_ten');
+  if(interval)clearInterval(interval);
+  document.getElementById('login-page').classList.remove('hidden');
+  document.getElementById('dash').classList.add('hidden');
+}
 
-    try {
-      const res  = await fetch(`${API}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!data.ok) { errEl.textContent = data.message; return; }
+function initDash(){
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('dash').classList.remove('hidden');
+  if(tenant)document.getElementById('store-name').textContent=tenant.name||'Dashboard';
+  refresh();
+  if(interval)clearInterval(interval);
+  interval=setInterval(refresh,120000);
+}
 
-      token      = data.token;
-      tenantInfo = data.tenant;
-      localStorage.setItem('fp_token', token);
-      localStorage.setItem('fp_tenant', JSON.stringify(tenantInfo));
-      showDashboard();
-    } catch {
-      errEl.textContent = 'Imeshindwa kuunganika na server';
+async function refresh(){
+  await Promise.all([loadData(),loadHistory()]);
+  render();
+}
+
+// ── Data loading ──────────────────────────────────────────────
+async function loadData(){
+  try{
+    const r=await fetch(`${API}/api/dashboard`,{headers:{Authorization:`Bearer ${token}`}});
+    if(r.status===401){logout();return}
+    const j=await r.json();
+    if(j.data){
+      D=j.data; D._syncedAt=j.syncedAt;
+      const t=new Date(j.syncedAt).toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit'});
+      setSyncBadge('ok',`✅ ${t}`);
+    } else {
+      setSyncBadge('wait','⚫ Haijasync');
     }
+  }catch{setSyncBadge('err','❌ Hitilafu')}
+}
+
+async function loadHistory(){
+  try{
+    const r=await fetch(`${API}/api/history?days=30`,{headers:{Authorization:`Bearer ${token}`}});
+    const j=await r.json();
+    if(j.data)H=j.data;
+  }catch{}
+}
+
+function setSyncBadge(type,text){
+  const el=document.getElementById('sync-badge');
+  el.textContent=text;
+  el.className='sync-badge sync-'+type;
+}
+
+// ── Tab navigation ────────────────────────────────────────────
+function showTab(t){
+  tab=t;
+  document.querySelectorAll('.nav-tab').forEach((el,i)=>{
+    el.classList.toggle('active',['overview','orders','hotel','staff','charts','history'][i]===t);
+  });
+  render();
+}
+
+function render(){
+  if(!D){
+    document.getElementById('main-content').innerHTML=`
+      <div class="no-data"><div class="ico">📡</div>
+      <p style="font-size:14px;color:#64748b">Hakuna data bado</p>
+      <p style="font-size:12px;color:#475569;margin-top:8px">Washa Cloud Sync: Settings → Cloud → Hifadhi</p></div>`;
+    return;
   }
+  const fn={overview:renderOverview,orders:renderOrders,hotel:renderHotel,staff:renderStaff,charts:renderCharts,history:renderHistory};
+  document.getElementById('main-content').innerHTML=(fn[tab]||renderOverview)();
+}
 
-  function doLogout() {
-    localStorage.removeItem('fp_token');
-    localStorage.removeItem('fp_tenant');
-    if (refreshInterval) clearInterval(refreshInterval);
-    document.getElementById('login-page').classList.remove('hidden');
-    document.getElementById('dashboard-page').classList.add('hidden');
-  }
+// ── Helpers ───────────────────────────────────────────────────
+const fmt=n=>'TSh '+Number(n||0).toLocaleString('sw-TZ');
+const fmtK=n=>n>=1000000?'TSh '+(n/1000000).toFixed(1)+'M':n>=1000?'TSh '+(n/1000).toFixed(0)+'K':fmt(n);
+const pct=(a,b)=>b>0?Math.round((a/b)*100):0;
+const statusBadge=s=>({open:'<span class="badge badge-open">Wazi</span>',in_progress:'<span class="badge badge-prog">Inaendelea</span>',billed:'<span class="badge badge-billed">Bili</span>',ready_all:'<span class="badge badge-ready">Tayari</span>',ready_partial:'<span class="badge badge-ready">Sehemu</span>'}[s]||`<span class="badge badge-open">${s}</span>`);
 
-  function showDashboard() {
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('dashboard-page').classList.remove('hidden');
-    if (tenantInfo) {
-      document.getElementById('tenant-name-header').textContent = tenantInfo.name;
-    }
-    loadData();
-    loadHistory();
-    // Refresh kila dakika 2
-    if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(() => { loadData(); loadHistory(); }, 120000);
-  }
+// ── OVERVIEW ──────────────────────────────────────────────────
+function renderOverview(){
+  const r=D.restaurant||{},h=D.hotel||{},t=D.tables||{};
+  const total=D.totalRevenue||0;
 
-  // ── Format helpers ───────────────────────────────────────────
-  const fmt = (n) => 'TSh ' + (Number(n)||0).toLocaleString('sw-TZ');
+  // Alerts
+  let alerts='';
+  if(r.activeOrders>5) alerts+=`<div class="alert alert-warn">⚠️ Orders ${r.activeOrders} zinasubiri — mgahawa una msongamano</div>`;
+  if(h.total>0&&h.occupancyRate>=80) alerts+=`<div class="alert alert-info">🏨 Occupancy ${h.occupancyRate}% — karibu kujaa, zingatia bookings mpya</div>`;
+  if(!alerts&&r.orders>0) alerts+=`<div class="alert alert-info">✅ Mfumo unafanya kazi vizuri leo</div>`;
 
-  // ── Load dashboard data ──────────────────────────────────────
-  async function loadData() {
-    try {
-      const res  = await fetch(`${API}/api/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401) { doLogout(); return; }
-      const json = await res.json();
+  return `
+  ${alerts}
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">Mapato Yote Leo</div><div class="kpi-val green">${fmtK(total)}</div><div class="kpi-sub">${r.orders||0} order${h.revenue>0?` + vyumba`:''}</div></div>
+    <div class="kpi"><div class="kpi-icon">🍽️</div><div class="kpi-lbl">Mgahawa</div><div class="kpi-val yellow">${fmtK(r.revenue||0)}</div><div class="kpi-sub">${r.orders||0} order zilizolipwa</div></div>
+    <div class="kpi"><div class="kpi-icon">⏳</div><div class="kpi-lbl">Zinaendelea</div><div class="kpi-val blue">${r.activeOrders||0}</div><div class="kpi-sub">zinasubiri sasa hivi</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Wastani/Order</div><div class="kpi-val purple">${fmtK(r.avgOrder||0)}</div><div class="kpi-sub">kwa kila order leo</div></div>
+  </div>
 
-      if (!json.data) {
-        document.getElementById('dash-content').innerHTML = `
-          <div class="no-data">
-            <div class="icon">📡</div>
-            <p>Hakuna data bado</p>
-            <p style="margin-top:8px;font-size:12px;">Hakikisha Cloud Sync imewashwa kwenye Settings → Cloud</p>
-          </div>`;
-        document.getElementById('sync-badge').textContent = '⚫ Haijasync';
-        return;
-      }
-
-      const d   = json.data;
-      const r   = d.restaurant || {};
-      const h   = d.hotel || {};
-      const syncTime = new Date(json.syncedAt).toLocaleTimeString('sw-TZ', {hour:'2-digit',minute:'2-digit'});
-      document.getElementById('sync-badge').textContent = `✅ Sync: ${syncTime}`;
-      document.getElementById('dash-subtitle').textContent =
-        `Leo ${new Date().toLocaleDateString('sw-TZ',{weekday:'long',day:'numeric',month:'long'})} · Imesasishwa: ${syncTime}`;
-
-      let html = '';
-
-      // KPI cards
-      const totalRev = d.totalRevenue || ((r.revenue||0) + (h.revenue||0));
-      html += `<div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Mapato Yote Leo</div>
-          <div class="kpi-value green">${fmt(totalRev)}</div>
-          <div class="kpi-sub">${r.orders||0} order${h.revenue>0?' + vyumba':''}</div>
+  <div class="grid-2">
+    <!-- Meza status -->
+    <div class="section">
+      <div class="sec-hdr"><span>🪑</span><span class="sec-title">Meza — Sasa Hivi</span><span class="sec-sub">${t.occupied||0}/${t.total||0} occupied</span></div>
+      <div class="sec-body">
+        <div class="grid-3">
+          <div class="room-stat"><div class="room-val green">${t.available||0}</div><div class="room-lbl">Inapatikana</div></div>
+          <div class="room-stat"><div class="room-val yellow">${t.occupied||0}</div><div class="room-lbl">Imechukuliwa</div></div>
+          <div class="room-stat"><div class="room-val blue">${t.billed||0}</div><div class="room-lbl">Bili</div></div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Order Zinaendelea</div>
-          <div class="kpi-value yellow">${r.activeOrders||0}</div>
-          <div class="kpi-sub">mgahawa sasa hivi</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Wastani / Order</div>
-          <div class="kpi-value blue">${fmt(r.avgOrder||0)}</div>
-          <div class="kpi-sub">kwa kila order</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Orders Leo</div>
-          <div class="kpi-value purple">${r.orders||0}</div>
-          <div class="kpi-sub">zilizolipwa</div>
-        </div>
-      </div>`;
-
-      // Hotel section
-      if (h.total > 0) {
-        html += `<div class="hotel-section">
-          <div class="section-title">🏨 Vyumba — Sasa Hivi</div>
-          <div class="hotel-grid">
-            <div class="hotel-stat"><div class="hotel-stat-val blue">${h.total}</div><div class="hotel-stat-label">Vyumba</div></div>
-            <div class="hotel-stat"><div class="hotel-stat-val green">${h.available}</div><div class="hotel-stat-label">Inapatikana</div></div>
-            <div class="hotel-stat"><div class="hotel-stat-val yellow">${h.occupied}</div><div class="hotel-stat-label">Imechukuliwa</div></div>
-            <div class="hotel-stat"><div class="hotel-stat-val purple">${h.cleaning||0}</div><div class="hotel-stat-label">Inasafishwa</div></div>
-            <div class="hotel-stat"><div class="hotel-stat-val red">${h.occupancyRate||0}%</div><div class="hotel-stat-label">Occupancy</div></div>
+        <div style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:6px">
+            <span>Matumizi ya Meza</span><span>${pct(t.occupied||0,t.total||0)}%</span>
           </div>
-          ${h.revenue>0 ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #334155;display:flex;justify-content:space-between;font-size:13px;"><span style="color:#64748b">Mapato ya Vyumba Leo</span><span style="font-weight:800;color:#22c55e;font-family:monospace">${fmt(h.revenue)}</span></div>` : ''}
-        </div>`;
-      }
+          <div style="height:8px;background:#0f172a;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pct(t.occupied||0,t.total||0)}%;background:linear-gradient(90deg,#1d4ed8,#60a5fa);border-radius:4px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      // Payment methods
-      const methods = r.byMethod || {};
-      const totalPay = Object.values(methods).reduce((s,v)=>s+(v||0), 0);
-      if (Object.keys(methods).length > 0) {
-        const methodIcons = { cash:'💵', mpesa:'📱', tigopesa:'📲', airtel:'📡', card:'💳', mobile_money:'📱' };
-        html += `<div class="methods">
-          <div class="section-title">💳 Malipo kwa Njia</div>
-          ${Object.entries(methods).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).map(([m,v])=>`
-            <div class="method-row">
-              <div class="method-name">${methodIcons[m]||'💰'} ${m}</div>
-              <div class="method-bar-wrap"><div class="method-bar" style="width:${totalPay>0?Math.round((v/totalPay)*100):0}%"></div></div>
-              <div class="method-val">${fmt(v)}</div>
-            </div>`).join('')}
-        </div>`;
-      }
+    <!-- Payment methods -->
+    <div class="section">
+      <div class="sec-hdr"><span>💳</span><span class="sec-title">Malipo kwa Njia</span></div>
+      <div class="sec-body">
+        ${renderMethods(r.byMethod||{})}
+      </div>
+    </div>
+  </div>
 
-      // Top items
-      if (d.topItems && d.topItems.length > 0) {
-        const medals = ['🥇','🥈','🥉'];
-        html += `<div class="top-items">
-          <div class="section-title">🏆 Bidhaa Zinazopendelewa Leo</div>
-          ${d.topItems.map((item,i)=>`
-            <div class="item-row">
-              <div class="item-rank">${medals[i]||i+1}</div>
-              <div class="item-name">${item.name}</div>
-              <div class="item-qty">×${item.qty}</div>
-              <div class="item-rev">${fmt(item.revenue)}</div>
-            </div>`).join('')}
-        </div>`;
-      }
+  ${h.total>0?`
+  <div class="section">
+    <div class="sec-hdr"><span>🏨</span><span class="sec-title">Hotel — Sasa Hivi</span><span class="sec-sub">Mapato leo: ${fmt(h.revenue||0)}</span></div>
+    <div class="sec-body">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi"><div class="kpi-lbl">Inapatikana</div><div class="kpi-val green">${h.available||0}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Imechukuliwa</div><div class="kpi-val yellow">${h.occupied||0}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Occupancy</div><div class="kpi-val red">${h.occupancyRate||0}%</div></div>
+      </div>
+    </div>
+  </div>`:''}
 
-      document.getElementById('dash-content').innerHTML = html;
-    } catch(err) {
-      console.error(err);
-      document.getElementById('sync-badge').textContent = '❌ Hitilafu';
-    }
-  }
+  <div class="grid-2">
+    <div class="section">
+      <div class="sec-hdr"><span>🏆</span><span class="sec-title">Top Bidhaa Leo</span></div>
+      <div class="sec-body">${renderTopItems(D.topItems||[])}</div>
+    </div>
+    <div class="section">
+      <div class="sec-hdr"><span>👥</span><span class="sec-title">Wafanyakazi Leo</span></div>
+      <div class="sec-body">${renderStaffMini(D.staff||[])}</div>
+    </div>
+  </div>`;
+}
 
-  // ── Load history ─────────────────────────────────────────────
-  async function loadHistory() {
-    try {
-      const res  = await fetch(`${API}/api/history?days=7`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (!json.data || json.data.length === 0) return;
+function renderMethods(m){
+  const total=Object.values(m).reduce((s,v)=>s+(v||0),0);
+  if(total===0)return '<div style="color:#475569;font-size:13px;text-align:center;padding:16px">Hakuna malipo bado</div>';
+  const icons={cash:'💵',mpesa:'📱',tigopesa:'📲',airtel:'📡',card:'💳',mobile_money:'📱'};
+  return Object.entries(m).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).map(([k,v])=>`
+    <div class="method-row">
+      <div class="method-name">${icons[k]||'💰'} ${k}</div>
+      <div class="method-bar-wrap"><div class="method-bar" style="width:${pct(v,total)}%"></div></div>
+      <div class="method-amt">${fmtK(v)}</div>
+    </div>`).join('');
+}
 
-      const rows = json.data.map(row => {
-        const d = row.data || {};
-        const r = d.restaurant || {};
-        const h = d.hotel || {};
-        const total = d.totalRevenue || ((r.revenue||0)+(h.revenue||0));
-        return `<div class="history-row">
-          <div class="history-date">${new Date(row.date).toLocaleDateString('sw-TZ',{weekday:'short',day:'numeric',month:'short'})}</div>
-          <div class="history-revenue">${fmt(total)}</div>
-          <div class="history-orders">${r.orders||0} order${h.occupied>0?` · 🏨 ${h.occupied}/${h.total}`:''}</div>
-        </div>`;
-      }).join('');
+function renderTopItems(items){
+  if(!items.length)return '<div style="color:#475569;font-size:13px;text-align:center;padding:16px">Hakuna data</div>';
+  const medals=['🥇','🥈','🥉'];
+  return `<table class="tbl"><thead><tr><th>#</th><th>Bidhaa</th><th>Idadi</th><th style="text-align:right">Mapato</th></tr></thead><tbody>
+  ${items.map((it,i)=>`<tr>
+    <td>${medals[i]||i+1}</td>
+    <td><span style="font-weight:600;color:#e2e8f0">${it.name}</span> ${it.station==='bar'?'<span style="font-size:10px;color:#60a5fa">BAR</span>':''}</td>
+    <td><span style="color:#fbbf24;font-weight:700">×${it.qty}</span></td>
+    <td style="text-align:right;font-family:monospace;color:#34d399;font-weight:700">${fmtK(it.revenue)}</td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
 
-      // Append history section if not exists
-      const existing = document.getElementById('history-section');
-      if (!existing) {
-        const section = document.createElement('div');
-        section.id = 'history-section';
-        section.className = 'history';
-        section.innerHTML = `<div class="section-title">📅 Historia — Wiki Hii</div>${rows}`;
-        document.getElementById('dash-content').appendChild(section);
-      } else {
-        existing.innerHTML = `<div class="section-title">📅 Historia — Wiki Hii</div>${rows}`;
-      }
-    } catch {}
-  }
+function renderStaffMini(staff){
+  if(!staff.length)return '<div style="color:#475569;font-size:13px;text-align:center;padding:16px">Hakuna data</div>';
+  return `<table class="tbl"><thead><tr><th>Jina</th><th>Orders</th><th style="text-align:right">Mapato</th></tr></thead><tbody>
+  ${staff.map((s,i)=>`<tr>
+    <td><span style="font-weight:600;color:#e2e8f0">${s.name}</span><br><span style="font-size:10px;color:#64748b">${s.role}</span></td>
+    <td><span style="color:#60a5fa;font-weight:700">${s.orders}</span></td>
+    <td style="text-align:right;font-family:monospace;color:#34d399;font-weight:700">${fmtK(s.revenue)}</td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+
+// ── ORDERS TAB ────────────────────────────────────────────────
+function renderOrders(){
+  const active=D.activeOrders||[];
+  return `
+  <div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="kpi-icon">⏳</div><div class="kpi-lbl">Zinaendelea</div><div class="kpi-val yellow">${D.restaurant?.activeOrders||0}</div></div>
+    <div class="kpi"><div class="kpi-icon">✅</div><div class="kpi-lbl">Zilizolipwa</div><div class="kpi-val green">${D.restaurant?.orders||0}</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Wastani</div><div class="kpi-val blue">${fmtK(D.restaurant?.avgOrder||0)}</div></div>
+    <div class="kpi"><div class="kpi-icon">👤</div><div class="kpi-lbl">Wateja Wapya</div><div class="kpi-val purple">${D.restaurant?.newCustomers||0}</div></div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr"><span>⏳</span><span class="sec-title">Orders Zinaendelea Sasa</span><span class="sec-sub">${active.length} order</span></div>
+    <div class="sec-body">
+    ${active.length===0?'<div class="no-data" style="padding:24px"><div class="ico" style="font-size:32px">✅</div><p style="font-size:13px">Hakuna orders zinazosubiri</p></div>':
+    `<table class="tbl"><thead><tr><th>Order</th><th>Meza</th><th>Hali</th><th>Muda</th><th style="text-align:right">Kiasi</th></tr></thead><tbody>
+    ${active.map(o=>`<tr>
+      <td><span style="font-family:monospace;font-weight:700;color:#e2e8f0">#${o.number?.split('-').pop()}</span></td>
+      <td>${o.table}</td>
+      <td>${statusBadge(o.status)}</td>
+      <td><span style="color:${o.minutes>30?'#f87171':o.minutes>15?'#fbbf24':'#34d399'};font-weight:700">${o.minutes}dk</span></td>
+      <td style="text-align:right;font-family:monospace;color:#fbbf24;font-weight:700">${fmtK(o.amount)}</td>
+    </tr>`).join('')}
+    </tbody></table>`}
+    </div>
+  </div>`;
+}
+
+// ── HOTEL TAB ─────────────────────────────────────────────────
+function renderHotel(){
+  const h=D.hotel||{};
+  if(h.total===0)return `<div class="no-data"><div class="ico">🏨</div><p>Hakuna vyumba vilivyosajiliwa</p><p style="font-size:12px;margin-top:8px;color:#475569">Ongeza vyumba kwenye Reception ya mfumo wa mgahawa</p></div>`;
+  return `
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-icon">🏨</div><div class="kpi-lbl">Vyumba Vyote</div><div class="kpi-val blue">${h.total}</div></div>
+    <div class="kpi"><div class="kpi-icon">🟢</div><div class="kpi-lbl">Inapatikana</div><div class="kpi-val green">${h.available||0}</div></div>
+    <div class="kpi"><div class="kpi-icon">🟡</div><div class="kpi-lbl">Imechukuliwa</div><div class="kpi-val yellow">${h.occupied||0}</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Occupancy</div><div class="kpi-val red">${h.occupancyRate||0}%</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="section">
+      <div class="sec-hdr"><span>📊</span><span class="sec-title">Hali ya Vyumba</span></div>
+      <div class="sec-body">
+        ${[
+          ['Inapatikana','green',h.available||0],
+          ['Imechukuliwa','yellow',h.occupied||0],
+          ['Checkout','blue',h.checkout||0],
+          ['Inasafishwa','purple',h.cleaning||0],
+          ['Matengenezo','red',h.maintenance||0],
+        ].map(([lbl,cls,val])=>val>0?`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #0f172a">
+            <span style="font-size:13px;color:#94a3b8"><span class="dot dot-${cls}"></span>${lbl}</span>
+            <span style="font-weight:800;font-size:16px" class="${cls}">${val}</span>
+          </div>`:''
+        ).join('')}
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #1e3a5f;display:flex;justify-content:space-between">
+          <span style="font-size:13px;color:#64748b">Mapato Leo</span>
+          <span style="font-weight:900;color:#34d399;font-family:monospace">${fmt(h.revenue||0)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-hdr"><span>📈</span><span class="sec-title">Occupancy Rate</span></div>
+      <div class="sec-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px">
+        <div style="position:relative;width:140px;height:140px">
+          <svg viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="#1e3a5f" stroke-width="14"/>
+            <circle cx="70" cy="70" r="60" fill="none" stroke="#f59e0b" stroke-width="14"
+              stroke-dasharray="${(h.occupancyRate||0)*3.77} 377" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+            <div style="font-size:28px;font-weight:900;color:#f59e0b">${h.occupancyRate||0}%</div>
+            <div style="font-size:11px;color:#64748b">occupied</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:13px;color:#64748b;text-align:center">
+          ${h.occupied||0} kati ya ${h.total} vyumba vimechukuliwa
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── STAFF TAB ─────────────────────────────────────────────────
+function renderStaff(){
+  const staff=D.staff||[];
+  const total=staff.reduce((s,x)=>s+(x.revenue||0),0);
+  if(!staff.length)return `<div class="no-data"><div class="ico">👥</div><p>Hakuna data ya wafanyakazi leo</p></div>`;
+  return `
+  <div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="kpi-icon">👥</div><div class="kpi-lbl">Waliofanya Kazi</div><div class="kpi-val blue">${staff.length}</div></div>
+    <div class="kpi"><div class="kpi-icon">🏆</div><div class="kpi-lbl">Kiongozi</div><div class="kpi-val yellow" style="font-size:16px">${staff[0]?.name||'—'}</div></div>
+    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">Mapato Yote</div><div class="kpi-val green">${fmtK(total)}</div></div>
+    <div class="kpi"><div class="kpi-icon">📋</div><div class="kpi-lbl">Orders Zote</div><div class="kpi-val purple">${staff.reduce((s,x)=>s+(x.orders||0),0)}</div></div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr"><span>🏆</span><span class="sec-title">Utendaji wa Wafanyakazi Leo</span></div>
+    <div class="sec-body">
+      <table class="tbl"><thead><tr><th>#</th><th>Jina</th><th>Wajibu</th><th>Orders</th><th>% ya Mapato</th><th style="text-align:right">Mapato</th></tr></thead><tbody>
+      ${staff.map((s,i)=>`<tr>
+        <td><span style="font-size:18px">${['🥇','🥈','🥉'][i]||i+1}</span></td>
+        <td><span style="font-weight:700;color:#e2e8f0">${s.name}</span></td>
+        <td><span style="font-size:11px;padding:2px 8px;background:#1e3a5f;border-radius:10px;color:#60a5fa">${s.role}</span></td>
+        <td><span style="font-weight:700;color:#60a5fa">${s.orders}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:6px;background:#0f172a;border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct(s.revenue,total)}%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:3px"></div>
+            </div>
+            <span style="font-size:11px;color:#94a3b8;width:30px">${pct(s.revenue,total)}%</span>
+          </div>
+        </td>
+        <td style="text-align:right;font-family:monospace;color:#34d399;font-weight:700">${fmtK(s.revenue)}</td>
+      </tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>`;
+}
+
+// ── CHARTS TAB ────────────────────────────────────────────────
+function renderCharts(){
+  const hourly=D.hourly||{};
+  const daily=D.daily||{};
+  const maxH=Math.max(...Object.values(hourly),1);
+  const maxD=Math.max(...Object.values(daily),1);
+  const dayNames=['Ju','It','Ju','Al','Hm','Ij','Sa'];
+  return `
+  <div class="section" style="margin-bottom:18px">
+    <div class="sec-hdr"><span>⏰</span><span class="sec-title">Mapato kwa Saa — Leo</span></div>
+    <div class="sec-body">
+      <div class="chart">
+        ${Object.entries(hourly).filter(([h])=>parseInt(h)>=6).map(([h,v])=>`
+          <div class="bar-wrap">
+            <div class="bar-val">${v>0?fmtK(v):''}</div>
+            <div class="bar" style="height:${Math.max(4,Math.round((v/maxH)*80))}px;opacity:${v>0?1:.2}"></div>
+            <div class="bar-lbl">${h}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr"><span>📅</span><span class="sec-title">Mapato — Siku 7 Zilizopita</span></div>
+    <div class="sec-body">
+      <div class="daily-chart">
+        ${Object.entries(daily).map(([date,v],i)=>{
+          const d=new Date(date);
+          const isToday=date===new Date().toISOString().slice(0,10);
+          return `<div class="day-bar-wrap">
+            <div class="bar-val" style="font-size:8px;color:#64748b">${v>0?fmtK(v):''}</div>
+            <div class="day-bar" style="height:${Math.max(4,Math.round((v/maxD)*100))}px;opacity:${v>0?1:.2};background:${isToday?'linear-gradient(to top,#d97706,#f59e0b)':'linear-gradient(to top,#7c3aed,#a78bfa)'}"></div>
+            <div class="day-lbl" style="color:${isToday?'#f59e0b':'#475569'}">${dayNames[d.getDay()]}<br>${d.getDate()}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── HISTORY TAB ───────────────────────────────────────────────
+function renderHistory(){
+  if(!H.length)return `<div class="no-data"><div class="ico">📅</div><p>Hakuna historia bado</p></div>`;
+  const totalRevH=H.reduce((s,row)=>{const d=row.data||{};return s+(d.totalRevenue||(((d.restaurant||{}).revenue||0)+((d.hotel||{}).revenue||0)));},0);
+  const avgRev=H.length?totalRevH/H.length:0;
+  return `
+  <div class="kpi-grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="kpi-icon">📅</div><div class="kpi-lbl">Siku Zilizorekodiwa</div><div class="kpi-val blue">${H.length}</div></div>
+    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">Mapato Yote</div><div class="kpi-val green">${fmtK(totalRevH)}</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">Wastani/Siku</div><div class="kpi-val yellow">${fmtK(avgRev)}</div></div>
+    <div class="kpi"><div class="kpi-icon">🏆</div><div class="kpi-lbl">Siku Bora</div><div class="kpi-val purple">${fmtK(Math.max(...H.map(r=>{const d=r.data||{};return d.totalRevenue||(((d.restaurant||{}).revenue||0)+((d.hotel||{}).revenue||0));})))}</div></div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr"><span>📋</span><span class="sec-title">Historia ya Mapato</span><span class="sec-sub">Siku ${H.length}</span></div>
+    <div class="sec-body">
+      <table class="tbl"><thead><tr><th>Tarehe</th><th>Siku</th><th>Orders</th><th>Hotel</th><th style="text-align:right">Mapato</th></tr></thead><tbody>
+      ${H.map(row=>{
+        const d=row.data||{};const r=d.restaurant||{};const h=d.hotel||{};
+        const total=d.totalRevenue||((r.revenue||0)+(h.revenue||0));
+        const date=new Date(row.date);
+        const isToday=row.date===new Date().toISOString().slice(0,10);
+        const days=['Jumapili','Jumatatu','Jumanne','Jumatano','Alhamisi','Ijumaa','Jumamosi'];
+        return `<tr style="${isToday?'background:rgba(245,158,11,.05)':''}">
+          <td style="font-family:monospace;color:${isToday?'#f59e0b':'#94a3b8'}">${row.date}</td>
+          <td style="color:#64748b">${days[date.getDay()]}</td>
+          <td><span style="color:#60a5fa;font-weight:700">${r.orders||0}</span></td>
+          <td>${h.total>0?`<span style="color:#a78bfa">${h.occupied||0}/${h.total}</span>`:'<span style="color:#475569">—</span>'}</td>
+          <td style="text-align:right"><span style="font-family:monospace;font-weight:900;color:${total>avgRev?'#34d399':'#e2e8f0'}">${fmtK(total)}</span>${total>avgRev?'<span style="color:#34d399;font-size:11px"> ↑</span>':''}</td>
+        </tr>`;
+      }).join('')}
+      </tbody></table>
+    </div>
+  </div>`;
+}
 </script>
 </body>
 </html>
