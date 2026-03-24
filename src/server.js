@@ -12,6 +12,9 @@ const { Pool } = require("pg");
 const bcrypt  = require("bcryptjs");
 const jwt     = require("jsonwebtoken");
 
+// Import license service
+const licenseService = require("./licenses");
+
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "fastapos-cloud-secret-2026";
@@ -26,7 +29,7 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
-// ── Init DB tables ────────────────────────────────────────────
+// ── Init DB tables (tenants, sync_data, sync_history) ────────
 const initDB = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tenants (
@@ -278,10 +281,92 @@ app.post("/api/tenants", async (req, res) => {
   }
 });
 
-// ── Start ─────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// LICENSE ROUTES — using licenseService
+// ══════════════════════════════════════════════════════════════
+
+// POST /api/licenses/verify — Check license validity (kwa local POS)
+app.post('/api/licenses/verify', async (req, res) => {
+  try {
+    const { key, machineId } = req.body;
+    if (!key || !machineId) {
+      return res.status(400).json({ ok: false, message: 'key na machineId zinahitajika' });
+    }
+    const result = await licenseService.verifyLicense(key.trim().toUpperCase(), machineId);
+    return res.json({ ok: result.valid, ...result });
+  } catch (err) {
+    console.error('License verify error:', err);
+    return res.status(500).json({ ok: false, message: 'Server error' });
+  }
+});
+
+// POST /api/licenses/create — Unda license mpya (admin only)
+app.post('/api/licenses/create', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(401).json({ ok: false, message: 'Admin key batili' });
+    }
+    const { tenantName, plan, months, notes } = req.body;
+    if (!tenantName) return res.status(400).json({ ok: false, message: 'tenantName inahitajika' });
+    const license = await licenseService.createLicense({ tenantName, plan, months, notes });
+    return res.status(201).json({ ok: true, license });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// GET /api/licenses — Orodha ya licenses zote (admin only)
+app.get('/api/licenses', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(401).json({ ok: false, message: 'Admin key batili' });
+    }
+    const licenses = await licenseService.listLicenses();
+    return res.json({ ok: true, licenses });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// POST /api/licenses/extend — Ongeza muda (admin only)
+app.post('/api/licenses/extend', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(401).json({ ok: false, message: 'Admin key batili' });
+    }
+    const { key, months } = req.body;
+    if (!key) return res.status(400).json({ ok: false, message: 'key inahitajika' });
+    const license = await licenseService.extendLicense(key, months || 1);
+    return res.json({ ok: true, license });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// POST /api/licenses/deactivate — Zima license (admin only)
+app.post('/api/licenses/deactivate', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(401).json({ ok: false, message: 'Admin key batili' });
+    }
+    const { key } = req.body;
+    if (!key) return res.status(400).json({ ok: false, message: 'key inahitajika' });
+    await licenseService.deactivateLicense(key);
+    return res.json({ ok: true, message: 'License imezimwa' });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// ── Start Server ──────────────────────────────────────────────
 const start = async () => {
   try {
     await initDB();
+    await licenseService.initLicenseDB();   // Initialize license tables
     app.listen(PORT, () => {
       console.log(`\n🌐 FastaPos Cloud running on port ${PORT}`);
       console.log(`📡 API ready`);
@@ -293,317 +378,3 @@ const start = async () => {
 };
 
 start();
-
-// ══════════════════════════════════════════════════════════════
-// LICENSE MANAGEMENT SYSTEM
-// ══════════════════════════════════════════════════════════════
-
-// ── Init license tables ───────────────────────────────────────
-const initLicenseTables = async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS licenses (
-      id           SERIAL PRIMARY KEY,
-      license_key  VARCHAR(50) UNIQUE NOT NULL,
-      tenant_id    VARCHAR(50),
-      machine_id   VARCHAR(200),         -- fingerprint ya kompyuta
-      plan         VARCHAR(20) DEFAULT 'basic',
-      status       VARCHAR(20) DEFAULT 'active', -- active|suspended|expired|cancelled
-      valid_from   DATE NOT NULL DEFAULT CURRENT_DATE,
-      valid_until  DATE NOT NULL,
-      notes        TEXT,
-      created_at   TIMESTAMP DEFAULT NOW(),
-      activated_at TIMESTAMP,            -- lini ilianza kutumika
-      last_seen_at TIMESTAMP             -- mara ya mwisho ilipochekiwa
-    );
-
-    CREATE TABLE IF NOT EXISTS license_events (
-      id          SERIAL PRIMARY KEY,
-      license_key VARCHAR(50),
-      event       VARCHAR(50),   -- activated|renewed|suspended|check_ok|check_fail
-      machine_id  VARCHAR(200),
-      ip_address  VARCHAR(50),
-      notes       TEXT,
-      created_at  TIMESTAMP DEFAULT NOW()
-    );
-  `);
-  console.log("✅ License tables ready");
-};
-
-// ── Generate license key ──────────────────────────────────────
-const generateLicenseKey = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const seg = () => Array.from({length:4}, ()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-  return `FASTA-${seg()}-${seg()}-${seg()}`;
-};
-
-// ── POST /api/licenses — unda license mpya (admin only) ──────
-app.post("/api/licenses", async (req, res) => {
-  try {
-    const adminKey = req.headers["x-admin-key"];
-    if (adminKey !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ ok: false, message: "Admin key batili" });
-    }
-    const { tenantId, plan, months = 1, notes } = req.body;
-    if (!tenantId) return res.status(400).json({ ok: false, message: "tenantId inahitajika" });
-
-    const licenseKey  = generateLicenseKey();
-    const validFrom   = new Date();
-    const validUntil  = new Date();
-    validUntil.setMonth(validUntil.getMonth() + parseInt(months));
-
-    await pool.query(`
-      INSERT INTO licenses (license_key, tenant_id, plan, valid_from, valid_until, notes)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [licenseKey, tenantId, plan || 'basic', validFrom, validUntil, notes || null]);
-
-    return res.status(201).json({
-      ok: true,
-      license: {
-        key:        licenseKey,
-        tenantId,
-        plan:       plan || 'basic',
-        validFrom:  validFrom.toISOString().slice(0,10),
-        validUntil: validUntil.toISOString().slice(0,10),
-        months,
-      }
-    });
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ ok: false, message: "Key ipo tayari" });
-    return res.status(500).json({ ok: false, message: err.message });
-  }
-});
-
-// ── POST /api/licenses/check — local POS inacheki ────────────
-app.post("/api/licenses/check", async (req, res) => {
-  try {
-    const { licenseKey, machineId, tenantId } = req.body;
-    if (!licenseKey) return res.status(400).json({ ok: false, message: "licenseKey inahitajika" });
-
-    const result = await pool.query(
-      "SELECT * FROM licenses WHERE license_key = $1",
-      [licenseKey]
-    );
-
-    if (result.rows.length === 0) {
-      await logEvent(licenseKey, 'check_fail', machineId, req.ip, 'Key haikupatikana');
-      return res.json({ ok: false, valid: false, reason: "invalid_key", message: "License key si sahihi" });
-    }
-
-    const lic = result.rows[0];
-
-    // Angalia status
-    if (lic.status === 'suspended') {
-      await logEvent(licenseKey, 'check_fail', machineId, req.ip, 'Imesimamishwa');
-      return res.json({ ok: false, valid: false, reason: "suspended", message: "License imesimamishwa — wasiliana na msimamizi" });
-    }
-    if (lic.status === 'cancelled') {
-      return res.json({ ok: false, valid: false, reason: "cancelled", message: "License imefutwa" });
-    }
-
-    // Angalia tarehe
-    const today = new Date(); today.setHours(0,0,0,0);
-    const expiry = new Date(lic.valid_until);
-    if (expiry < today) {
-      await pool.query("UPDATE licenses SET status='expired' WHERE license_key=$1", [licenseKey]);
-      await logEvent(licenseKey, 'check_fail', machineId, req.ip, 'Imeisha muda');
-      return res.json({
-        ok: false, valid: false, reason: "expired",
-        message: "Subscription imekwisha",
-        expiredAt: lic.valid_until,
-      });
-    }
-
-    // Angalia machine ID (kuzuia copying)
-    if (lic.machine_id && machineId && lic.machine_id !== machineId) {
-      await logEvent(licenseKey, 'check_fail', machineId, req.ip, `Machine tofauti: ${machineId}`);
-      return res.json({
-        ok: false, valid: false, reason: "wrong_machine",
-        message: "License hii imefungwa kwenye kompyuta nyingine — wasiliana na msimamizi",
-      });
-    }
-
-    // Activate — weka machine_id ukifika mara ya kwanza
-    if (!lic.machine_id && machineId) {
-      await pool.query(
-        "UPDATE licenses SET machine_id=$1, activated_at=NOW() WHERE license_key=$2",
-        [machineId, licenseKey]
-      );
-      await logEvent(licenseKey, 'activated', machineId, req.ip, `Tenant: ${tenantId}`);
-    }
-
-    // Sasisha last_seen
-    await pool.query(
-      "UPDATE licenses SET last_seen_at=NOW() WHERE license_key=$1",
-      [licenseKey]
-    );
-    await logEvent(licenseKey, 'check_ok', machineId, req.ip, null);
-
-    const daysLeft = Math.ceil((expiry - today) / (1000*60*60*24));
-
-    return res.json({
-      ok: true, valid: true,
-      plan:       lic.plan,
-      validUntil: lic.valid_until,
-      daysLeft,
-      warning:    daysLeft <= 7 ? `Subscription inaisha siku ${daysLeft} — fanya upya` : null,
-    });
-  } catch (err) {
-    return res.status(500).json({ ok: false, message: err.message });
-  }
-});
-
-// ── GET /api/licenses — orodha ya licenses (admin) ───────────
-app.get("/api/licenses", async (req, res) => {
-  try {
-    const adminKey = req.headers["x-admin-key"];
-    if (adminKey !== process.env.ADMIN_KEY) return res.status(401).json({ ok: false });
-    const result = await pool.query(`
-      SELECT l.*, t.name as tenant_name
-      FROM licenses l
-      LEFT JOIN tenants t ON t.tenant_id = l.tenant_id
-      ORDER BY l.created_at DESC
-    `);
-    return res.json({ ok: true, licenses: result.rows });
-  } catch (err) { return res.status(500).json({ ok: false, message: err.message }); }
-});
-
-// ── PATCH /api/licenses/:key — renew au suspend ──────────────
-app.patch("/api/licenses/:key", async (req, res) => {
-  try {
-    const adminKey = req.headers["x-admin-key"];
-    if (adminKey !== process.env.ADMIN_KEY) return res.status(401).json({ ok: false });
-    const { key } = req.params;
-    const { months, status, resetMachine } = req.body;
-
-    if (months) {
-      // Renew — ongeza miezi
-      await pool.query(`
-        UPDATE licenses SET
-          valid_until = GREATEST(valid_until, CURRENT_DATE) + INTERVAL '${parseInt(months)} months',
-          status = 'active'
-        WHERE license_key = $1
-      `, [key]);
-      await logEvent(key, 'renewed', null, null, `+${months} miezi`);
-    }
-    if (status) {
-      await pool.query("UPDATE licenses SET status=$1 WHERE license_key=$2", [status, key]);
-      await logEvent(key, status, null, null, null);
-    }
-    if (resetMachine) {
-      await pool.query("UPDATE licenses SET machine_id=NULL, activated_at=NULL WHERE license_key=$1", [key]);
-      await logEvent(key, 'machine_reset', null, null, 'Machine reset na admin');
-    }
-
-    const result = await pool.query("SELECT * FROM licenses WHERE license_key=$1", [key]);
-    return res.json({ ok: true, license: result.rows[0] });
-  } catch (err) { return res.status(500).json({ ok: false, message: err.message }); }
-});
-
-const logEvent = async (key, event, machineId, ip, notes) => {
-  try {
-    await pool.query(
-      "INSERT INTO license_events (license_key, event, machine_id, ip_address, notes) VALUES ($1,$2,$3,$4,$5)",
-      [key, event, machineId||null, ip||null, notes||null]
-    );
-  } catch {}
-};
-
-// Init license tables
-initLicenseTables().catch(console.error);
-
-// ══════════════════════════════════════════════════════════════
-// LICENSE ROUTES
-// ══════════════════════════════════════════════════════════════
-const licenseService = require('./licenses');
-
-// Init license tables on startup
-licenseService.initLicensesDB().catch(console.error);
-
-// POST /api/licenses/activate — local server inafanya hii ukiingiza key
-app.post('/api/licenses/activate', async (req, res) => {
-  try {
-    const { key, machineId, machineName } = req.body;
-    if (!key || !machineId) {
-      return res.status(400).json({ ok: false, error: 'key na machineId zinahitajika' });
-    }
-    const ipAddress = req.ip || req.connection.remoteAddress;
-    const result = await licenseService.activateLicense({ key, machineId, machineName, ipAddress });
-    return res.json(result);
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// POST /api/licenses/verify — check ya kila siku
-app.post('/api/licenses/verify', async (req, res) => {
-  try {
-    const { key, machineId } = req.body;
-    if (!key || !machineId) {
-      return res.status(400).json({ ok: false, error: 'key na machineId zinahitajika' });
-    }
-    const result = await licenseService.verifyLicense({ key, machineId });
-    return res.json(result);
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// GET /api/licenses — Jamal anaona zote (ADMIN_KEY required)
-app.get('/api/licenses', async (req, res) => {
-  try {
-    if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ ok: false, error: 'Admin key inahitajika' });
-    }
-    const licenses = await licenseService.getAllLicenses();
-    return res.json({ ok: true, licenses });
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// POST /api/licenses/create — Jamal anaunda license mpya
-app.post('/api/licenses/create', async (req, res) => {
-  try {
-    if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ ok: false, error: 'Admin key inahitajika' });
-    }
-    const { tenantName, plan, months, tenantId, notes } = req.body;
-    if (!tenantName) return res.status(400).json({ ok: false, error: 'tenantName inahitajika' });
-    const license = await licenseService.createLicense({ tenantName, plan, months, tenantId, notes });
-    return res.status(201).json({ ok: true, license });
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// POST /api/licenses/renew — ongeza muda
-app.post('/api/licenses/renew', async (req, res) => {
-  try {
-    if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ ok: false, error: 'Admin key inahitajika' });
-    }
-    const { key, months } = req.body;
-    const result = await licenseService.renewLicense({ key, months });
-    return res.json(result);
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// POST /api/licenses/transfer — hamisha license kwenye machine nyingine
-app.post('/api/licenses/transfer', async (req, res) => {
-  try {
-    if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ ok: false, error: 'Admin key inahitajika' });
-    }
-    const { key, newMachineId, newMachineName } = req.body;
-    const result = await licenseService.transferLicense({ key, newMachineId, newMachineName });
-    return res.json(result);
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// ══════════════════════════════════════════════════════════════
-// LICENSE ROUTES
-// ══════════════════════════════════════════════════════════════
