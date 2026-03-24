@@ -80,7 +80,6 @@ const verifyLicense = async (key, machineId) => {
     );
   } else if (license.machine_id !== machineId) {
     // Machine nyingine — ruhusu kama ni machine ID inayofanana kwa kiasi
-    // (kuzuia hali ya update ya OS inabadilisha machine ID kidogo)
     const similarity = stringSimilarity(license.machine_id, machineId);
     if (similarity < 0.7) {
       return { valid: false, reason: 'MACHINE_MISMATCH', message: 'License imefungwa kwa kompyuta nyingine. Wasiliana na msimamizi.' };
